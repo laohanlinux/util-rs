@@ -8,7 +8,7 @@ pub fn u32_big_to_bin(x: u32) -> [u8; 4] {
 }
 
 pub fn u32_big_fill_buf(x: u32, buf: &mut [u8]) {
-    assert!(buf.len() == 4);
+    assert_eq!(buf.len(), 4);
     buf[0] = ((x >> 24) & 0xff) as u8;
     buf[1] = ((x >> 16) & 0xff) as u8;
     buf[2] = ((x >> 8) & 0xff) as u8;
@@ -16,7 +16,7 @@ pub fn u32_big_fill_buf(x: u32, buf: &mut [u8]) {
 }
 
 pub fn bin_big_to_u32(x: &[u8]) -> u32 {
-    assert!(x.len() == 4);
+    assert_eq!(x.len(), 4);
     let b1 = (x[0] as u32) << 24;
     let b2 = (x[1] as u32) << 16;
     let b3 = (x[2] as u32) << 8;
@@ -38,7 +38,7 @@ pub fn u64_big_to_bin(x: u64) -> [u8; 8] {
 }
 
 pub fn u64_big_fill_buf(x: u64, buf: &mut [u8]) {
-    assert!(buf.len() == 8);
+    assert_eq!(buf.len(), 8);
     buf[0] = ((x >> 56) & 0xffff) as u8;
     buf[1] = ((x >> 48) & 0xffff) as u8;
     buf[2] = ((x >> 40) & 0xffff) as u8;
@@ -50,7 +50,7 @@ pub fn u64_big_fill_buf(x: u64, buf: &mut [u8]) {
 }
 
 pub fn bin_big_to_u64(x: &[u8]) -> u64 {
-    assert!(x.len() == 8);
+    assert_eq!(x.len(), 8);
     let b1 = (x[0] as u64) << 56;
     let b2 = (x[1] as u64) << 48;
     let b3 = (x[2] as u64) << 40;
