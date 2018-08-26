@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Rg <daimaldd@gmail.com>"]
 
 [dependencies]
-exonum_sodiumoxide = "0.0.16"
+exonum_sodiumoxide = "0.0.20"
 byteorder = "1.1.0"
 chrono = { version = "0.4.0", features = ["serde"] }
 uuid = { version = "0.6.0", features = ["serde"] }
