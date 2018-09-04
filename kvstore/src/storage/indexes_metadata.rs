@@ -17,6 +17,7 @@
 use std::borrow::Cow;
 use std::error::Error;
 
+use crypto::{Hash, CryptoHash};
 use storage::{BaseIndex, Fork, Snapshot, StorageValue};
 
 pub const INDEXES_METADATA_TABLE_NAME: &str = "__INDEXES_METADATA__";

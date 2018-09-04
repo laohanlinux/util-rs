@@ -8,7 +8,7 @@ authors = ["Rg <daimaldd@gmail.com>"]
 members = [
     "./",
     "kvstore",
-   # "blockchain",
+    "storage"
 ]
 
 [dependencies]

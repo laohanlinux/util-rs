@@ -20,7 +20,7 @@ use byteorder::{BigEndian, ByteOrder};
 use chrono::{DateTime, NaiveDateTime, Utc};
 use uuid::Uuid;
 
-use crypto::{Hash, PublicKey, HASH_SIZE, PUBLIC_KEY_LENGTH};
+use crypto::{Hash, HASH_SIZE};
 
 /// A type that can be (de)serialized as a key in the blockchain storage.
 ///
@@ -177,33 +177,33 @@ storage_key_for_ints!{u16, i16, 2, read_u16, write_u16}
 storage_key_for_ints!{u32, i32, 4, read_u32, write_u32}
 storage_key_for_ints!{u64, i64, 8, read_u64, write_u64}
 
-impl StorageKey for Hash {
-    fn size(&self) -> usize {
-        HASH_SIZE
-    }
+//impl StorageKey for Hash {
+//    fn size(&self) -> usize {
+//        HASH_SIZE
+//    }
+//
+//    fn write(&self, buffer: &mut [u8]) {
+//        buffer.copy_from_slice(self.as_ref())
+//    }
+//
+//    fn read(buffer: &[u8]) -> Self::Owned {
+//        Hash::from_slice(buffer).unwrap()
+//    }
+//}
 
-    fn write(&self, buffer: &mut [u8]) {
-        buffer.copy_from_slice(self.as_ref())
-    }
-
-    fn read(buffer: &[u8]) -> Self::Owned {
-        Hash::from_slice(buffer).unwrap()
-    }
-}
-
-impl StorageKey for PublicKey {
-    fn size(&self) -> usize {
-        PUBLIC_KEY_LENGTH
-    }
-
-    fn write(&self, buffer: &mut [u8]) {
-        buffer.copy_from_slice(self.as_ref())
-    }
-
-    fn read(buffer: &[u8]) -> Self::Owned {
-        PublicKey::from_slice(buffer).unwrap()
-    }
-}
+//impl StorageKey for PublicKey {
+//    fn size(&self) -> usize {
+//        PUBLIC_KEY_LENGTH
+//    }
+//
+//    fn write(&self, buffer: &mut [u8]) {
+//        buffer.copy_from_slice(self.as_ref())
+//    }
+//
+//    fn read(buffer: &[u8]) -> Self::Owned {
+//        PublicKey::from_slice(buffer).unwrap()
+//    }
+//}
 
 impl StorageKey for Vec<u8> {
     fn size(&self) -> usize {

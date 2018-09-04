@@ -11,3 +11,6 @@ failure = "0.1.1"
 exonum_rocksdb = "0.7.2"
 hex = { git = "https://github.com/KokaKiwi/rust-hex.git"}
 sha3 = "0.7.3"
+byteorder = "1.1.0"
+chrono = { version = "0.4.0", features = ["serde"] }
+uuid = { version = "0.6.0", features = ["serde"] }

@@ -128,9 +128,9 @@ pub use self::list_index::ListIndex;
 pub use self::sparse_list_index::SparseListIndex;
 pub use self::key_set_index::KeySetIndex;
 pub use self::value_set_index::ValueSetIndex;
-pub use self::proof_list_index::{ListProof, ProofListIndex};
-#[doc(no_inline)]
-pub use self::proof_map_index::{HashedKey, MapProof, ProofMapIndex};
+//pub use self::proof_list_index::{ListProof, ProofListIndex};
+//#[doc(no_inline)]
+//pub use self::proof_map_index::{HashedKey, MapProof, ProofMapIndex};
 pub use self::hash::UniqueHash;
 
 /// A specialized `Result` type for I/O operations with storage.
@@ -154,8 +154,8 @@ pub mod list_index;
 pub mod sparse_list_index;
 pub mod key_set_index;
 pub mod value_set_index;
-pub mod proof_list_index;
-pub mod proof_map_index;
+//pub mod proof_list_index;
+//pub mod proof_map_index;
 
 #[cfg(test)]
 mod tests;

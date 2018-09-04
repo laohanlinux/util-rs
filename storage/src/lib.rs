@@ -1,7 +1,7 @@
 pub mod storage;
 pub mod crypto;
-pub mod common;
 pub mod encoding;
+pub mod common;
 
 extern crate serde;
 #[macro_use]
