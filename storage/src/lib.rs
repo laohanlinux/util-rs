@@ -16,6 +16,8 @@ extern crate sha3;
 extern crate byteorder;
 extern crate chrono;
 extern crate uuid;
+extern crate rmp;
+extern crate rmp_serde as rmps;
 
 #[cfg(test)]
 mod tests {
