@@ -1,15 +1,21 @@
 use sha3::{Sha3_256, Digest};
 use std::string::String;
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::io::Cursor;
 
 use common;
 use encoding::{ToHex, FromHexError};
 
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
+use chrono::prelude::*;
+use chrono::{DateTime, Duration, Utc};
+use serde::{Serialize, Deserialize};
+use rmps::{Serializer, Deserializer};
+use rmps::decode::Error;
 
 pub const HASH_SIZE: usize = 32;
 
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct Hash([u8; HASH_SIZE]);
 
 impl Hash {
@@ -32,7 +38,7 @@ impl Hash {
 
     /// Create a new install with filled with zeros.
     pub fn zero() -> Self {
-        Self::new(&[0; HASH_SIZE])
+        Hash([0; HASH_SIZE])
     }
 
     pub fn to_hex(&self) -> String {
@@ -58,7 +64,7 @@ impl FromStr for Hash {
             let out:Vec<u8> = s.chars().skip(2).map(|c| c as u8).collect();
             return Ok(Hash::new(&out));
         } else {
-            return Err(FromHexError::new());
+            return Err(FromHexError::InvalidStringLength);
         }
     }
 }
@@ -87,19 +93,12 @@ pub trait CryptoHash {
 }
 
 /////////////////////////////////////////////
-use std::io::Cursor;
-
-use serde::{Serialize, Deserialize};
-use rmps::{Serializer, Deserializer};
-use rmps::decode::Error;
-
-
 macro_rules! implement_cryptohash_traits {
     ($key: ident) => {
         impl CryptoHash for $key {
             fn hash(&self) -> Hash {
                 let mut buf:Vec<u8> = Vec::new();
-                let result = self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+                self.serialize(&mut Serializer::new(&mut buf)).unwrap();
                 hash(&buf)
             }
         }
@@ -116,36 +115,37 @@ implement_cryptohash_traits! {i16}
 implement_cryptohash_traits! {i32}
 implement_cryptohash_traits! {i64}
 implement_cryptohash_traits! {String}
+implement_cryptohash_traits! {Uuid}
 
 impl CryptoHash for () {
     fn hash(&self) -> Hash {
-//        let mut buf = Vec::new();
-//        hash(self.serialize(&mut Serialize::new(&mut buf)).unwrap())
-        Hash::default()
+        let mut buf = Vec::new();
+        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        hash(&buf)
     }
 }
 
 impl CryptoHash for Vec<u8> {
     fn hash(&self) -> Hash {
-//        let mut buf = Vec::new();
-//        hash(self.serialize(&mut Serialize::new(&mut buf)).unwrap())
-        Hash::default()
-    }
-}
-
-impl CryptoHash for Uuid {
-    fn hash(&self) -> Hash {
-//        let mut buf = Vec::new();
-//        hash(self.serialize(&mut Serialize::new(&mut buf)).unwrap())
-        Hash::default()
+        let mut buf = Vec::new();
+        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        hash(&buf)
     }
 }
 
 impl CryptoHash for DateTime<Utc> {
     fn hash(&self) -> Hash {
         let mut buf = Vec::new();
-//        hash(self.serialize(&mut Serialize::new(&mut buf)).unwrap())
-        Hash::default()
+        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        hash(&buf)
+    }
+}
+
+impl CryptoHash for Duration {
+    fn hash(&self) -> Hash {
+        let mut buf = Vec::new();
+        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        hash(&buf)
     }
 }
 
@@ -177,9 +177,15 @@ impl HashStream {
 
     /// Returns the hash of data supplied to the stream so far.
     pub fn hash(self) -> Hash {
-        let mut hasher = Sha3_256::default();
-        hasher.input(data);
-        let result = hasher.result();
-        Hash::new(&result)
+        let dig = self.0.result().to_vec();
+        Hash::new(&dig)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn hash() {
+
     }
 }

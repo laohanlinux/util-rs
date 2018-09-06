@@ -15,13 +15,19 @@
 //! A definition of `StorageValue` trait and implementations for common types.
 
 use byteorder::{ByteOrder, LittleEndian};
-use chrono::{DateTime, Duration, NaiveDateTime, Utc};
+use chrono::prelude::*;
+use chrono::{DateTime, NaiveDateTime, Utc};
 use uuid::Uuid;
+use serde::{Serialize, Deserialize};
+use rmps::{Serializer, Deserializer};
+use rmps::decode::Error;
 
 use std::mem;
 use std::borrow::Cow;
+use std::io::Cursor;
 
 use super::hash::UniqueHash;
+use crypto::{Hash, CryptoHash};
 
 /// A type that can be (de)serialized as a value in the blockchain storage.
 ///
@@ -82,142 +88,66 @@ pub trait StorageValue: UniqueHash + Sized {
     fn from_bytes(value: Cow<[u8]>) -> Self;
 }
 
-/// No-op implementation.
-impl StorageValue for () {
-    fn into_bytes(self) -> Vec<u8> {
-        Vec::new()
-    }
-
-    fn from_bytes(_value: Cow<[u8]>) -> Self {
-        ()
-    }
-}
-
-impl StorageValue for bool {
-    fn into_bytes(self) -> Vec<u8> {
-        vec![self as u8]
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        assert_eq!(value.len(), 1);
-
-        match value[0] {
-            0 => false,
-            1 => true,
-            value => panic!("Invalid value for bool: {}", value),
+macro_rules! implement_storagevalue_traits {
+    ($key: ident) => {
+        impl StorageValue for $key {
+            fn into_bytes(self) -> Vec<u8> {
+                let mut buf: Vec<u8> = Vec::new();
+                self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+                buf
+            }
+            fn from_bytes(value: Cow<[u8]>) -> Self {
+                let cur = Cursor::new(&value[..]);
+                let mut de = Deserializer::new(cur);
+                Deserialize::deserialize(&mut de).unwrap()
+            }
         }
     }
 }
 
-impl StorageValue for u8 {
+implement_storagevalue_traits! {bool}
+implement_storagevalue_traits! {u8}
+implement_storagevalue_traits! {u16}
+implement_storagevalue_traits! {u32}
+implement_storagevalue_traits! {u64}
+implement_storagevalue_traits! {i8}
+implement_storagevalue_traits! {i16}
+implement_storagevalue_traits! {i32}
+implement_storagevalue_traits! {i64}
+/// Uses UTF-8 string serialization.
+implement_storagevalue_traits! {String}
+implement_storagevalue_traits! {Uuid}
+
+/// No-op implementation.
+impl StorageValue for () {
     fn into_bytes(self) -> Vec<u8> {
-        vec![self]
+        let mut buf: Vec<u8> = Vec::new();
+        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        buf
     }
 
     fn from_bytes(value: Cow<[u8]>) -> Self {
-        assert_eq!(value.len(), 1);
-        value[0]
+        let cur = Cursor::new(&value[..]);
+        let mut de = Deserializer::new(cur);
+        Deserialize::deserialize(&mut de).unwrap()
     }
 }
 
-/// Uses little-endian encoding.
-impl StorageValue for u16 {
+// Hash is very special
+impl StorageValue for Hash {
     fn into_bytes(self) -> Vec<u8> {
-        let mut v = vec![0; 2];
-        LittleEndian::write_u16(&mut v, self);
-        v
+        let mut buf: Vec<u8> = Vec::new();
+        self.as_ref().to_vec().serialize(&mut Serializer::new(&mut buf)).unwrap();
+        buf
     }
 
     fn from_bytes(value: Cow<[u8]>) -> Self {
-        LittleEndian::read_u16(value.as_ref())
+        let cur = Cursor::new(&value[..]);
+        let mut de = Deserializer::new(cur);
+        let v: Vec<u8> = Deserialize::deserialize(&mut de).unwrap();
+        Hash::new(&v)
     }
 }
-
-/// Uses little-endian encoding.
-impl StorageValue for u32 {
-    fn into_bytes(self) -> Vec<u8> {
-        let mut v = vec![0; 4];
-        LittleEndian::write_u32(&mut v, self);
-        v
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        LittleEndian::read_u32(value.as_ref())
-    }
-}
-
-/// Uses little-endian encoding.
-impl StorageValue for u64 {
-    fn into_bytes(self) -> Vec<u8> {
-        let mut v = vec![0; mem::size_of::<u64>()];
-        LittleEndian::write_u64(&mut v, self);
-        v
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        LittleEndian::read_u64(value.as_ref())
-    }
-}
-
-impl StorageValue for i8 {
-    fn into_bytes(self) -> Vec<u8> {
-        vec![self as u8]
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        assert_eq!(value.len(), 1);
-        value[0] as i8
-    }
-}
-
-/// Uses little-endian encoding.
-impl StorageValue for i16 {
-    fn into_bytes(self) -> Vec<u8> {
-        let mut v = vec![0; 2];
-        LittleEndian::write_i16(&mut v, self);
-        v
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        LittleEndian::read_i16(value.as_ref())
-    }
-}
-
-/// Uses little-endian encoding.
-impl StorageValue for i32 {
-    fn into_bytes(self) -> Vec<u8> {
-        let mut v = vec![0; 4];
-        LittleEndian::write_i32(&mut v, self);
-        v
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        LittleEndian::read_i32(value.as_ref())
-    }
-}
-
-/// Uses little-endian encoding.
-impl StorageValue for i64 {
-    fn into_bytes(self) -> Vec<u8> {
-        let mut v = vec![0; 8];
-        LittleEndian::write_i64(&mut v, self);
-        v
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        LittleEndian::read_i64(value.as_ref())
-    }
-}
-
-//impl StorageValue for Hash {
-//    fn into_bytes(self) -> Vec<u8> {
-//        self.as_ref().to_vec()
-//    }
-//
-//    fn from_bytes(value: Cow<[u8]>) -> Self {
-//        Self::from_slice(value.as_ref()).unwrap()
-//    }
-//}
 
 //impl StorageValue for PublicKey {
 //    fn into_bytes(self) -> Vec<u8> {
@@ -241,45 +171,34 @@ impl StorageValue for i64 {
 
 impl StorageValue for Vec<u8> {
     fn into_bytes(self) -> Vec<u8> {
-        self
+        let mut buf: Vec<u8> = Vec::new();
+        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        buf
     }
 
     fn from_bytes(value: Cow<[u8]>) -> Self {
-        value.into_owned()
-    }
-}
-
-/// Uses UTF-8 string serialization.
-impl StorageValue for String {
-    fn into_bytes(self) -> Vec<u8> {
-        String::into_bytes(self)
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        String::from_utf8(value.into_owned()).unwrap()
+        let cur = Cursor::new(&value[..]);
+        let mut de = Deserializer::new(cur);
+        Deserialize::deserialize(&mut de).unwrap()
     }
 }
 
 /// Uses little-endian encoding.
 impl StorageValue for DateTime<Utc> {
     fn into_bytes(self) -> Vec<u8> {
-        let secs = self.timestamp();
-        let nanos = self.timestamp_subsec_nanos();
-
-        let mut buffer = vec![0; 12];
-        LittleEndian::write_i64(&mut buffer[0..8], secs);
-        LittleEndian::write_u32(&mut buffer[8..12], nanos);
-        buffer
+        let mut buf: Vec<u8> = Vec::new();
+        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        buf
     }
 
     fn from_bytes(value: Cow<[u8]>) -> Self {
-        let secs = LittleEndian::read_i64(&value[0..8]);
-        let nanos = LittleEndian::read_u32(&value[8..12]);
-        DateTime::from_utc(NaiveDateTime::from_timestamp(secs, nanos), Utc)
+        let cur = Cursor::new(&value[..]);
+        let mut de = Deserializer::new(cur);
+        Deserialize::deserialize(&mut de).unwrap()
     }
 }
 
-/// Uses little-endian encoding.
+
 //impl StorageValue for Duration {
 //    fn into_bytes(self) -> Vec<u8> {
 //        let mut buffer = vec![0; Duration::field_size() as usize];
@@ -306,16 +225,6 @@ impl StorageValue for DateTime<Utc> {
 //        Round(u32::from_bytes(value))
 //    }
 //}
-
-impl StorageValue for Uuid {
-    fn into_bytes(self) -> Vec<u8> {
-        self.as_bytes().to_vec()
-    }
-
-    fn from_bytes(value: Cow<[u8]>) -> Self {
-        Uuid::from_bytes(&value).unwrap()
-    }
-}
 
 #[cfg(test)]
 mod tests {
