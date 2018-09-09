@@ -12,7 +12,11 @@ exonum_rocksdb = "0.7.2"
 hex = { git = "https://github.com/KokaKiwi/rust-hex.git"}
 sha3 = "0.7.3"
 byteorder = "1.1.0"
-chrono = { version = "0.4.0", features = ["serde"] }
+chrono = { version = "0.4.5", features = ["serde"] }
 uuid = { version = "0.6.0", features = ["serde"] }
 rmp = "*"
 rmp-serde  = "*"
+keccak-hash = "*"
+ethereum-types = "*"
+eth-secp256k1 = { git = "https://github.com/paritytech/rust-secp256k1" }
+lazy_static = "1.0"

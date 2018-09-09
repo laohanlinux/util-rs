@@ -1,3 +1,5 @@
+pub mod msgpack;
+
 use std::fmt;
 
 /// use third package alias local package

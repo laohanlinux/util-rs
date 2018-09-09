@@ -1,14 +1,14 @@
 use sha3::{Sha3_256, Digest};
 use std::string::String;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::io::Cursor;
+use ethereum_types::{U256, Public, Secret};
 
 use common;
 use encoding::{ToHex, FromHexError};
 
 use uuid::Uuid;
 use chrono::prelude::*;
-use chrono::{DateTime, Duration, Utc};
 use serde::{Serialize, Deserialize};
 use rmps::{Serializer, Deserializer};
 use rmps::decode::Error;
@@ -92,72 +92,15 @@ pub trait CryptoHash {
     fn hash(&self) -> Hash;
 }
 
-/////////////////////////////////////////////
-macro_rules! implement_cryptohash_traits {
-    ($key: ident) => {
-        impl CryptoHash for $key {
-            fn hash(&self) -> Hash {
-                let mut buf:Vec<u8> = Vec::new();
-                self.serialize(&mut Serializer::new(&mut buf)).unwrap();
-                hash(&buf)
-            }
-        }
-    }
-}
-
-implement_cryptohash_traits! {bool}
-implement_cryptohash_traits! {u8}
-implement_cryptohash_traits! {u16}
-implement_cryptohash_traits! {u32}
-implement_cryptohash_traits! {u64}
-implement_cryptohash_traits! {i8}
-implement_cryptohash_traits! {i16}
-implement_cryptohash_traits! {i32}
-implement_cryptohash_traits! {i64}
-implement_cryptohash_traits! {String}
-implement_cryptohash_traits! {Uuid}
-
-impl CryptoHash for () {
-    fn hash(&self) -> Hash {
-        let mut buf = Vec::new();
-        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
-        hash(&buf)
-    }
-}
-
-impl CryptoHash for Vec<u8> {
-    fn hash(&self) -> Hash {
-        let mut buf = Vec::new();
-        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
-        hash(&buf)
-    }
-}
-
-impl CryptoHash for DateTime<Utc> {
-    fn hash(&self) -> Hash {
-        let mut buf = Vec::new();
-        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
-        hash(&buf)
-    }
-}
-
-impl CryptoHash for Duration {
-    fn hash(&self) -> Hash {
-        let mut buf = Vec::new();
-        self.serialize(&mut Serializer::new(&mut buf)).unwrap();
-        hash(&buf)
-    }
-}
-
 impl Default for Hash {
     fn default() -> Hash {
         Hash::zero()
     }
 }
 
-pub fn hash(data: &[u8]) -> Hash {
-    let digest = common::to_sha3(data);
-    Hash::new(&digest)
+pub fn hash<T: AsRef<[u8]>>(data: T) -> Hash {
+    let digest = common::to_keccak(data);
+    Hash::new(digest.as_ref())
 }
 
 #[derive(Debug, Default)]
@@ -184,8 +127,13 @@ impl HashStream {
 
 #[cfg(test)]
 mod test {
+    use std::io::{self, Write};
+
     #[test]
     fn hash() {
+        for i in 0..100 {
+            writeln!(io::stdout(), "{:#?}", super::hash(vec![i])).unwrap();
+        }
 
     }
 }
