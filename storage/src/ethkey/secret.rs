@@ -2,17 +2,37 @@ use std::fmt;
 use std::ops::Deref;
 use std::str::FromStr;
 
-
 use secp256k1::constants::{SECRET_KEY_SIZE as SECP256K1_SECRET_KEY_SIZE};
 use secp256k1::key;
 use ethereum_types::H256;
 use mem::Memzero;
 
 use super::{Error, SECP256K1};
+use encoding::ToHex;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Secret {
     inner: Memzero<H256>,
+}
+
+impl ToHex for Secret {
+    fn write_hex<W: fmt::Write>(&self, w: &mut W) -> fmt::Result {
+        let chars: &[u8] = self.inner.as_ref();
+        chars.iter().for_each(|c| w.write_char(*c as char).unwrap());
+        Ok(())
+    }
+
+    fn write_hex_upper<W: fmt::Write>(&self, w: &mut W) -> fmt::Result {
+        let chars: &[u8] = self.inner.as_ref();
+        chars.iter().for_each(|c| w.write_char(*c as char).unwrap());
+        Ok(())
+    }
+}
+
+impl fmt::LowerHex for Secret {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        self.inner.fmt(fmt)
+    }
 }
 
 impl fmt::Debug for Secret {
@@ -50,9 +70,9 @@ impl Secret {
     }
 
     /// Checks validity of this key
-//    pub fn check_validity(&self) -> Result<(), Error> {
-////        self.to_
-//    }
+    pub fn check_validity(&self) -> Result<(), Error> {
+        self.to_secp256k1_secret().map(|_|())
+    }
 
 
     /// Create `secp256k1::key::SecretKey` based on this secret

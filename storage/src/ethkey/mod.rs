@@ -1,5 +1,6 @@
 pub mod secret;
 pub mod error;
+pub mod crypto;
 
 pub use self::error::Error;
 
