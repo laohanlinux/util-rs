@@ -2,10 +2,11 @@ use std::fmt;
 use std::ops::Deref;
 use std::str::FromStr;
 
-use secp256k1::constants::{SECRET_KEY_SIZE as SECP256K1_SECRET_KEY_SIZE};
+use secp256k1::constants::SECRET_KEY_SIZE as SECP256K1_SECRET_KEY_SIZE;
 use secp256k1::key;
 use ethereum_types::H256;
 use mem::Memzero;
+use rustc_hex::ToHex as StdToHex;
 
 use super::{Error, SECP256K1};
 use encoding::ToHex;
@@ -55,12 +56,12 @@ impl Secret {
         }
         let mut h = H256::default();
         h.copy_from_slice(&key[0..32]);
-        Some(Secret{inner: Memzero::from(h)})
+        Some(Secret { inner: Memzero::from(h) })
     }
 
     /// Create zero key, which is invalid for crypto operation, but valid for math operation.
     pub fn zero() -> Self {
-        Secret{inner: Memzero::from(H256::default())}
+        Secret { inner: Memzero::from(H256::default()) }
     }
 
     /// Imports and validates the key
@@ -71,13 +72,17 @@ impl Secret {
 
     /// Checks validity of this key
     pub fn check_validity(&self) -> Result<(), Error> {
-        self.to_secp256k1_secret().map(|_|())
+        self.to_secp256k1_secret().map(|_| ())
     }
 
 
     /// Create `secp256k1::key::SecretKey` based on this secret
     pub fn to_secp256k1_secret(&self) -> Result<key::SecretKey, Error> {
         Ok(key::SecretKey::from_slice(&SECP256K1, &self[..])?)
+    }
+
+    pub fn to_hex(&self) -> String {
+        format!("{:x}", *self.inner)
     }
 }
 
@@ -89,8 +94,8 @@ impl FromStr for Secret {
 }
 
 impl From<[u8; 32]> for Secret {
-    fn from(k: [u8;32]) -> Self {
-        Secret{inner: Memzero::from(H256(k))}
+    fn from(k: [u8; 32]) -> Self {
+        Secret { inner: Memzero::from(H256(k)) }
     }
 }
 
@@ -101,7 +106,7 @@ impl From<H256> for Secret {
 }
 
 impl From<&'static str> for Secret {
-    fn from(s: &'static str) ->Self{
+    fn from(s: &'static str) -> Self {
         s.parse().expect(&format!("Invalid string literal for {}: '{}'", stringify!(Self), s))
     }
 }

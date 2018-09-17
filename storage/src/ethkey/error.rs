@@ -79,3 +79,8 @@ impl From<::std::io::Error> for Error {
         Error::Io(err)
     }
 }
+
+#[cfg(test)]
+mod test {
+
+}

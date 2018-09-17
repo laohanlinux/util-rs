@@ -1,7 +1,6 @@
-
-
 pub mod storage;
 pub mod crypto;
+#[macro_use]
 pub mod encoding;
 pub mod common;
 pub mod ethkey;
@@ -23,6 +22,10 @@ extern crate uuid;
 extern crate rmp;
 extern crate rmp_serde as rmps;
 #[macro_use]extern crate lazy_static;
+extern crate rand;
+extern crate tiny_keccak;
+extern crate rustc_hex;
+extern crate parity_crypto;
 
 #[cfg(test)]
 mod tests {

@@ -14,6 +14,7 @@ use rmps::{Serializer, Deserializer};
 use rmps::decode::Error;
 
 /////////////////////////////////////////////
+#[macro_export]
 macro_rules! implement_cryptohash_traits {
     ($key: ident) => {
         impl CryptoHash for $key {
@@ -60,5 +61,34 @@ impl CryptoHash for DateTime<Utc> {
         let mut buf = Vec::new();
         self.serialize(&mut Serializer::new(&mut buf)).unwrap();
         hash(&buf)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::io::{self, Write};
+    #[test]
+    fn u8_hsh() {
+        let u_8: u8 = u8::from(100);
+        writeln!(io::stdout(), "u8_hash {:?}", u_8.hash()).unwrap();
+    }
+
+    #[test]
+    fn bool_hash(){
+        writeln!(io::stdout(), "bool_true_hash {:?}", true.hash()).unwrap();
+        writeln!(io::stdout(), "bool_false_hash {:?}", false.hash()).unwrap();
+    }
+
+    #[test]
+    fn i8_hash(){
+        writeln!(io::stdout(), "i8_hash {:?}", i8::from(100).hash()).unwrap();
+    }
+
+    #[test]
+    fn batch() {
+        for i in 0..(2<<10) {
+            writeln!(io::stdout(), "random_{} {:?}",i, i.hash()).unwrap();
+        }
     }
 }
