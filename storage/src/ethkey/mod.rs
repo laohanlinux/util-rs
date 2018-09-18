@@ -4,10 +4,12 @@ pub mod crypto;
 pub mod random;
 pub mod keypair;
 pub mod keccak;
+pub mod signature;
 
 pub use self::error::Error;
 pub use self::secret::Secret;
 pub use self::keypair::KeyPair;
+
 
 #[macro_use]
 use encoding::*;
