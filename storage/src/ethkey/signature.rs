@@ -2,11 +2,15 @@ use std::ops::{Deref, DerefMut};
 use std::cmp::PartialEq;
 use std::fmt;
 use std::str::FromStr;
-use std::hash::{Hash, Hasher};
 use secp256k1::{Message as SecpMessage, RecoverableSignature, RecoveryId, Error as SecpError};
 use secp256k1::key::{SecretKey, PublicKey};
 use ethereum_types::{H520, H256};
-use super::{Secret, Public, SECP256K1, Error, Address};
+use super::{Secret, Public, SECP256K1,Message, Error, Address};
+use ::crypto::{CryptoHash, Hash, hash};
+use ::common::to_hex;
+use serde::{Serialize, Deserialize};
+use rmps::{Serializer, Deserializer};
+use hex::FromHex;
 
 pub const SIGNATURE_SIZE: usize = 65;
 pub const SIGNATURE_R_SIZE: usize = 32;
@@ -50,4 +54,134 @@ impl Signature {
         sig[64] -= 27;
         Signature(sig)
     }
+
+    /// Check if this is a "low" signature
+    pub fn is_low_s(&self) -> bool {
+        H256::from_slice(self.s()) <= "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0".into()
+    }
+
+    /// Check if each_component of the signature is in range.
+    pub fn is_valid(&self) -> bool {
+        self.v() <= 1 &&
+            H256::from_slice(self.r()) < "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141".into() &&
+            H256::from_slice(self.r()) >= 1.into() &&
+            H256::from_slice(self.s()) < "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141".into() &&
+            H256::from_slice(self.s()) >= 1.into()
+    }
+}
+
+// manual implementation large arrays don't have trait impls by default.
+// remove when integer generics exist
+impl PartialEq for Signature {
+    fn eq(&self, other: &Self) -> bool {
+        &self.0[..] == &other.0[..]
+    }
+}
+
+// manual implementation required in Rust 1.13+, see `std::cmp::AssertParamIsEq`.
+impl Eq for Signature { }
+
+// also manual for the same reason, but the pretty printing might be useful.
+impl fmt::Debug for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        f.debug_struct("Signature")
+            .field("r", &to_hex(&self.0[0..32]))
+            .field("s", &to_hex(&self.0[32..64]))
+            .field("v", &to_hex(&self.0[64..65]))
+            .finish()
+    }
+}
+
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{}", to_hex(&self.0[..]))
+    }
+}
+
+impl FromStr for Signature {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let dec_hex = ::common::from_hex(s);
+        match dec_hex {
+            Ok(ref hex) if hex.len() == 65 => {
+                let mut data = [0; SIGNATURE_SIZE];
+                data.copy_from_slice(&hex[0..65]);
+                Ok(Signature(data))
+            }
+            _ => Err(Error::InvalidSignature)
+        }
+    }
+}
+
+impl Default for Signature {
+    fn default() -> Self {
+        Signature([0; 65])
+    }
+}
+
+impl CryptoHash for Signature {
+    fn hash(&self) -> Hash {
+        let mut buf:Vec<u8> = Vec::new();
+        self.0.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        hash(&buf)
+    }
+}
+
+impl Clone for Signature {
+    fn clone(&self) -> Self {
+        Signature(self.0)
+    }
+}
+
+impl From<[u8; 65]> for Signature {
+    fn from(s: [u8; 65]) -> Self {
+        Signature(s)
+    }
+}
+
+impl Into<[u8; 65]> for Signature {
+    fn into(self) -> [u8; 65] {
+        self.0
+    }
+}
+
+impl From<Signature> for H520 {
+    fn from(s: Signature) -> Self {
+        H520::from(s.0)
+    }
+}
+
+impl From<H520> for Signature {
+    fn from(bytes: H520) -> Self {
+        Signature(bytes.into())
+    }
+}
+
+impl Deref for Signature {
+    type Target = [u8; 65];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Signature {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
+    let context = &SECP256K1;
+    let sec = SecretKey::from_slice(context, &secret)?;
+    let s = context.sign_recoverable(&SecpMessage::from_slice(&message[..])?, &sec);
+    let (rec_id, data) = s.serialize_compact(context);
+    let mut data_arr = [0; SIGNATURE_SIZE];
+
+    // no need to check if s is low, it always is
+    let signature_v_offset = SIGNATURE_R_SIZE + SIGNATURE_S_SIZE;
+    data_arr[0..signature_v_offset].copy_from_slice(&data[0..signature_v_offset]);
+    data_arr[signature_v_offset] = rec_id.to_i32() as u8;
+    Ok(Signature(data_arr))
 }

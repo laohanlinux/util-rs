@@ -17,6 +17,7 @@ use encoding::*;
 use secp256k1::Secp256k1;
 use ethereum_types::H256;
 pub use ethereum_types::{Address, Public};
+pub type Message = H256; // 256 / 8 = 32byte
 
 lazy_static! {
     pub static ref SECP256K1: Secp256k1 = Secp256k1::new();

@@ -1,10 +1,15 @@
 use hex;
+use rustc_hex::ToHex;
 use sha3::{Sha3_256, Digest};
 use ethereum_types::H256;
 use keccak_hash::keccak;
 
 pub fn to_hex<T: AsRef<[u8]>>(data: T) -> String{
     hex::encode(data)
+}
+
+pub fn from_hex<T: AsRef<[u8]>>(data: T) -> Result<Vec<u8>, hex::FromHexError> {
+    hex::decode(data)
 }
 
 pub fn to_sha3(data: &[u8]) -> Vec<u8> {
