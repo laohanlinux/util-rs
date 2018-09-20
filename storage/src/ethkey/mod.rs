@@ -8,7 +8,7 @@ pub mod signature;
 
 pub use self::error::Error;
 pub use self::secret::Secret;
-pub use self::keypair::KeyPair;
+pub use self::keypair::{KeyPair, public_to_address};
 
 
 #[macro_use]

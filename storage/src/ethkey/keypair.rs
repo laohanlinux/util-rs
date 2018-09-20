@@ -16,7 +16,6 @@
 
 use std::fmt;
 use secp256k1::key;
-use encoding::ToHex;
 use common::to_hex;
 use super::keccak::Keccak256;
 use super::{Secret, SECP256K1, Public, Address, Error};

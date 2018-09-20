@@ -33,6 +33,7 @@ impl Generator for OsRng {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;

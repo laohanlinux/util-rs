@@ -5,7 +5,7 @@ use std::str::FromStr;
 use secp256k1::{Message as SecpMessage, RecoverableSignature, RecoveryId, Error as SecpError};
 use secp256k1::key::{SecretKey, PublicKey};
 use ethereum_types::{H520, H256};
-use super::{Secret, Public, SECP256K1,Message, Error, Address};
+use super::{Secret, Public, SECP256K1,Message, Error, public_to_address, Address};
 use ::crypto::{CryptoHash, Hash, hash};
 use ::common::to_hex;
 use serde::{Serialize, Deserialize};
@@ -175,7 +175,7 @@ impl DerefMut for Signature {
 pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
     let context = &SECP256K1;
     let sec = SecretKey::from_slice(context, &secret)?;
-    let s = context.sign_recoverable(&SecpMessage::from_slice(&message[..])?, &sec);
+    let s = context.sign_recoverable(&SecpMessage::from_slice(&message[..])?, &sec)?;
     let (rec_id, data) = s.serialize_compact(context);
     let mut data_arr = [0; SIGNATURE_SIZE];
 
@@ -184,4 +184,52 @@ pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
     data_arr[0..signature_v_offset].copy_from_slice(&data[0..signature_v_offset]);
     data_arr[signature_v_offset] = rec_id.to_i32() as u8;
     Ok(Signature(data_arr))
+}
+
+/// |compress-0|1~64|
+pub fn veriry_public(public: &Public, signature: &Signature, message: &Message) -> Result<bool, Error> {
+    let context = &SECP256K1;
+    let v_off = SIGNATURE_S_SIZE + SIGNATURE_R_SIZE;
+    let rsig = RecoverableSignature::from_compact(context, &signature[0..v_off], RecoveryId::from_i32(signature[v_off] as i32)?)?;
+    let sig = rsig.to_standard(context);
+
+    let pdata: [u8; SIGNATURE_SIZE] = {
+        let mut temp = [4u8; SIGNATURE_SIZE];
+        temp[1..SIGNATURE_SIZE].copy_from_slice(&**public);
+        temp
+    };
+
+    let publ = PublicKey::from_slice(context, &pdata)?;
+    match context.verify(&SecpMessage::from_slice(&message[..])?, &sig, &publ) {
+        Ok(_) => Ok(true),
+        Err(SecpError::IncorrectSignature) => Ok(false),
+        Err(x) => Err(Error::from(x))
+    }
+}
+
+pub fn verify_address(address: &Address, signature: &Signature, message: &Message) -> Result<bool, Error> {
+    let public = recover(signature, message)?;
+    let recovered_address = public_to_address(&public);
+    Ok(address == &recovered_address)
+}
+
+pub fn recover(signature: &Signature, message: &Message) -> Result<Public, Error> {
+    let context = &SECP256K1;
+    let v_off = SIGNATURE_R_SIZE + SIGNATURE_S_SIZE;
+    let rsig = RecoverableSignature::from_compact(context, &signature[0..v_off], RecoveryId::from_i32(signature[v_off] as i32)?)?;
+    let pubkey = context.recover(&SecpMessage::from_slice(&message[..])?, &rsig)?;
+    let serialized = pubkey.serialize_vec(context, false);
+
+    let mut public = Public::default();
+    public.copy_from_slice(&serialized[1..65]);
+    Ok(public)
+}
+
+#[cfg(test)]
+mod test {
+
+    #[test]
+    fn sign_test() {
+        
+    }
 }

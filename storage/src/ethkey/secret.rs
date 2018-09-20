@@ -9,25 +9,10 @@ use mem::Memzero;
 use rustc_hex::ToHex as StdToHex;
 
 use super::{Error, SECP256K1};
-use encoding::ToHex;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Secret {
     inner: Memzero<H256>,
-}
-
-impl ToHex for Secret {
-    fn write_hex<W: fmt::Write>(&self, w: &mut W) -> fmt::Result {
-        let chars: &[u8] = self.inner.as_ref();
-        chars.iter().for_each(|c| w.write_char(*c as char).unwrap());
-        Ok(())
-    }
-
-    fn write_hex_upper<W: fmt::Write>(&self, w: &mut W) -> fmt::Result {
-        let chars: &[u8] = self.inner.as_ref();
-        chars.iter().for_each(|c| w.write_char(*c as char).unwrap());
-        Ok(())
-    }
 }
 
 impl fmt::LowerHex for Secret {

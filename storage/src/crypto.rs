@@ -2,11 +2,12 @@ use sha3::{Sha3_256, Digest};
 use std::string::String;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::io::Cursor;
-use ethereum_types::{U256, Public, Secret};
+use std::iter::FromIterator;
 
 use common;
-use encoding::{ToHex, FromHexError};
 
+use ethereum_types::{U256, Public, Secret};
+use rustc_hex::{FromHex, ToHex, FromHexError};
 use uuid::Uuid;
 use chrono::prelude::*;
 use serde::{Serialize, Deserialize};
@@ -64,7 +65,7 @@ impl FromStr for Hash {
             let out:Vec<u8> = s.chars().skip(2).map(|c| c as u8).collect();
             return Ok(Hash::new(&out));
         } else {
-            return Err(FromHexError::InvalidStringLength);
+            return Err(FromHexError::InvalidHexLength);
         }
     }
 }
@@ -76,15 +77,10 @@ impl fmt::Debug for Hash {
     }
 }
 
-/// TODO use macro
+
 impl ToHex for Hash {
-    // TODO
-    fn write_hex<W: ::std::fmt::Write>(&self, w: &mut W) -> ::std::fmt::Result {
-        Ok(())
-    }
-    // TODO
-    fn write_hex_upper<W: ::std::fmt::Write>(&self, w: &mut W) -> ::std::fmt::Result {
-        Ok(())
+    fn to_hex<T: FromIterator<char>>(&self) -> T {
+        self.as_ref().to_hex()
     }
 }
 

@@ -4,7 +4,6 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::io::Cursor;
 
 use common;
-use encoding::{ToHex, FromHexError};
 use crypto::*;
 
 use uuid::Uuid;
