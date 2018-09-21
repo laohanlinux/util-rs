@@ -1,17 +1,17 @@
-use sha3::{Sha3_256, Digest};
+use sha3::{Digest, Sha3_256};
+use std::io::Cursor;
 use std::string::String;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use std::io::Cursor;
 
 use common;
 use crypto::*;
 use ethkey::Public as PublicKey;
 
-use uuid::Uuid;
 use chrono::prelude::*;
-use serde::{Serialize, Deserialize};
-use rmps::{Serializer, Deserializer};
 use rmps::decode::Error;
+use rmps::{Deserializer, Serializer};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /////////////////////////////////////////////
 #[macro_export]
@@ -19,12 +19,12 @@ macro_rules! implement_cryptohash_traits {
     ($key: ident) => {
         impl CryptoHash for $key {
             fn hash(&self) -> Hash {
-                let mut buf:Vec<u8> = Vec::new();
+                let mut buf: Vec<u8> = Vec::new();
                 self.serialize(&mut Serializer::new(&mut buf)).unwrap();
                 hash(&buf)
             }
         }
-    }
+    };
 }
 
 implement_cryptohash_traits! {bool}
@@ -39,6 +39,7 @@ implement_cryptohash_traits! {i64}
 implement_cryptohash_traits! {String}
 implement_cryptohash_traits! {Uuid}
 implement_cryptohash_traits! {Duration}
+implement_cryptohash_traits! {PublicKey}
 
 impl CryptoHash for () {
     fn hash(&self) -> Hash {
@@ -64,14 +65,6 @@ impl CryptoHash for DateTime<Utc> {
     }
 }
 
-impl CryptoHash for PublicKey {
-    fn hash(&self) -> Hash {
-        let mut buf = Vec::new();
-        self.0.as_ref().serialize(&mut Serializer::new(&mut buf)).unwrap();
-        hash(&buf)
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -83,20 +76,20 @@ mod test {
     }
 
     #[test]
-    fn bool_hash(){
+    fn bool_hash() {
         writeln!(io::stdout(), "bool_true_hash {:?}", true.hash()).unwrap();
         writeln!(io::stdout(), "bool_false_hash {:?}", false.hash()).unwrap();
     }
 
     #[test]
-    fn i8_hash(){
+    fn i8_hash() {
         writeln!(io::stdout(), "i8_hash {:?}", i8::from(100).hash()).unwrap();
     }
 
     #[test]
     fn batch() {
-        for i in 0..(2<<10) {
-            writeln!(io::stdout(), "random_{} {:?}",i, i.hash()).unwrap();
+        for i in 0..(2 << 10) {
+            writeln!(io::stdout(), "random_{} {:?}", i, i.hash()).unwrap();
         }
     }
 }
