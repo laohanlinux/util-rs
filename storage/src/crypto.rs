@@ -1,18 +1,18 @@
-use sha3::{Sha3_256, Digest};
-use std::string::String;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use sha3::{Digest, Sha3_256};
 use std::io::Cursor;
 use std::iter::FromIterator;
+use std::string::String;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use common;
 
-use ethereum_types::{U256, Public, Secret};
-use rustc_hex::{FromHex, ToHex, FromHexError};
-use uuid::Uuid;
 use chrono::prelude::*;
-use serde::{Serialize, Deserialize};
-use rmps::{Serializer, Deserializer};
+use ethereum_types::{Public, Secret, U256};
 use rmps::decode::Error;
+use rmps::{Deserializer, Serializer};
+use rustc_hex::{FromHex, FromHexError, ToHex};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 pub const HASH_SIZE: usize = 32;
 
@@ -59,10 +59,10 @@ impl FromStr for Hash {
     type Err = FromHexError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() == HASH_SIZE {
-            let out:Vec<u8> = s.chars().map(|c| c as u8).collect();
+            let out: Vec<u8> = s.chars().map(|c| c as u8).collect();
             return Ok(Hash::new(&out));
-        }else if  s.len() == (HASH_SIZE + 2)  {
-            let out:Vec<u8> = s.chars().skip(2).map(|c| c as u8).collect();
+        } else if s.len() == (HASH_SIZE + 2) {
+            let out: Vec<u8> = s.chars().skip(2).map(|c| c as u8).collect();
             return Ok(Hash::new(&out));
         } else {
             return Err(FromHexError::InvalidHexLength);
@@ -76,7 +76,6 @@ impl fmt::Debug for Hash {
         write!(f, "0x{}", self.to_hex())
     }
 }
-
 
 impl ToHex for Hash {
     fn to_hex<T: FromIterator<char>>(&self) -> T {
@@ -130,6 +129,5 @@ mod test {
         for i in 0..100 {
             writeln!(io::stdout(), "{:#?}", super::hash(vec![i])).unwrap();
         }
-
     }
 }

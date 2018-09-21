@@ -187,7 +187,7 @@ pub fn sign(secret: &Secret, message: &Message) -> Result<Signature, Error> {
 }
 
 /// |compress-0|1~64|
-pub fn veriry_public(public: &Public, signature: &Signature, message: &Message) -> Result<bool, Error> {
+pub fn verify_public(public: &Public, signature: &Signature, message: &Message) -> Result<bool, Error> {
     let context = &SECP256K1;
     let v_off = SIGNATURE_S_SIZE + SIGNATURE_R_SIZE;
     let rsig = RecoverableSignature::from_compact(context, &signature[0..v_off], RecoveryId::from_i32(signature[v_off] as i32)?)?;
@@ -227,9 +227,55 @@ pub fn recover(signature: &Signature, message: &Message) -> Result<Public, Error
 
 #[cfg(test)]
 mod test {
+    use std::str::FromStr;
+    use ::ethkey::{Generator, random::Random, Message};
+    use super::{sign, verify_address, verify_public, recover, Signature};
 
     #[test]
-    fn sign_test() {
-        
+    fn vrs_conversion() {
+        let keypair = Random.generate().unwrap();
+        let message = Message::default();
+        let signature = sign(keypair.secret(), &message).unwrap();
+
+        // when
+        let vrs = signature.clone().into_electrum();
+        let from_vrs = Signature::from_electrum(&vrs);
+
+        // then
+        assert_eq!(signature, from_vrs);
+    }
+
+    #[test]
+    fn signature_to_and_from_str() {
+        let keypair = Random.generate().unwrap();
+        let message = Message::default();
+        let signature = sign(keypair.secret(), &message).unwrap();
+        let string = format!("{}", signature);
+        let deserialized = Signature::from_str(&string).unwrap();
+        assert_eq!(signature, deserialized);
+    }
+
+    #[test]
+    fn sign_and_recover_public() {
+        let keypair = Random.generate().unwrap();
+        let message = Message::default();
+        let signature = sign(keypair.secret(), &message).unwrap();
+        assert_eq!(keypair.public(), &recover(&signature, &message).unwrap());
+    }
+
+    #[test]
+    fn sign_and_verify_public() {
+        let keypair = Random.generate().unwrap();
+        let message = Message::default();
+        let signature = sign(keypair.secret(), &message).unwrap();
+        assert!(verify_public(keypair.public(), &signature, &message).unwrap());
+    }
+
+    #[test]
+    fn sign_and_verify_address() {
+        let keypair = Random.generate().unwrap();
+        let message = Message::default();
+        let signature = sign(keypair.secret(), &message).unwrap();
+        assert!(verify_address(&keypair.address(), &signature, &message).unwrap());
     }
 }

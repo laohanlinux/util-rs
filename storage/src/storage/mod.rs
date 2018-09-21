@@ -1,7 +1,8 @@
-pub mod error;
 pub mod db;
-pub mod values;
+pub mod error;
 pub mod hash;
+//pub mod rocksdb;
+pub mod values;
 
 pub use self::error::Error;
 

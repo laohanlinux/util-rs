@@ -9,7 +9,8 @@ pub mod signature;
 pub use self::error::Error;
 pub use self::secret::Secret;
 pub use self::keypair::{KeyPair, public_to_address};
-
+pub use self::random::Random;
+pub use self::signature::{sign, verify_public, verify_address, recover, Signature};
 
 #[macro_use]
 use encoding::*;

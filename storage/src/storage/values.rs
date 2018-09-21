@@ -27,6 +27,7 @@ use std::mem;
 use std::borrow::Cow;
 use std::io::Cursor;
 
+use ethkey::{Public as PublicKey};
 use super::hash::UniqueHash;
 use crypto::{Hash, CryptoHash};
 
@@ -150,15 +151,20 @@ impl StorageValue for Hash {
     }
 }
 
-//impl StorageValue for PublicKey {
-//    fn into_bytes(self) -> Vec<u8> {
-//        self.as_ref().to_vec()
-//    }
-//
-//    fn from_bytes(value: Cow<[u8]>) -> Self {
-//        PublicKey::from_slice(value.as_ref()).unwrap()
-//    }
-//}
+impl StorageValue for PublicKey {
+    fn into_bytes(self) -> Vec<u8> {
+        let mut buf: Vec<u8> = Vec::new();
+        self.0.as_ref().serialize(&mut Serializer::new(&mut buf)).unwrap();
+        buf
+    }
+
+    fn from_bytes(value: Cow<[u8]>) -> Self {
+        let cur = Cursor::new(&value[..]);
+        let mut de = Deserializer::new(cur);
+        let v: Vec<u8> = Deserialize::deserialize(&mut de).unwrap();
+        PublicKey::from_slice(&v)
+    }
+}
 
 //impl StorageValue for RawMessage {
 //    fn into_bytes(self) -> Vec<u8> {

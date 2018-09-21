@@ -5,6 +5,7 @@ use std::io::Cursor;
 
 use common;
 use crypto::*;
+use ethkey::Public as PublicKey;
 
 use uuid::Uuid;
 use chrono::prelude::*;
@@ -59,6 +60,14 @@ impl CryptoHash for DateTime<Utc> {
     fn hash(&self) -> Hash {
         let mut buf = Vec::new();
         self.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        hash(&buf)
+    }
+}
+
+impl CryptoHash for PublicKey {
+    fn hash(&self) -> Hash {
+        let mut buf = Vec::new();
+        self.0.as_ref().serialize(&mut Serializer::new(&mut buf)).unwrap();
         hash(&buf)
     }
 }
