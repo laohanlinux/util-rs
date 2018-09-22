@@ -3,6 +3,7 @@ pub mod error;
 pub mod hash;
 //pub mod rocksdb;
 pub mod values;
+pub mod keys;
 
 pub use self::error::Error;
 

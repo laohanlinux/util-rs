@@ -69,6 +69,7 @@ impl CryptoHash for DateTime<Utc> {
 mod test {
     use super::*;
     use std::io::{self, Write};
+    use ethkey::Generator;
     #[test]
     fn u8_hsh() {
         let u_8: u8 = u8::from(100);
@@ -84,6 +85,24 @@ mod test {
     #[test]
     fn i8_hash() {
         writeln!(io::stdout(), "i8_hash {:?}", i8::from(100).hash()).unwrap();
+    }
+
+    #[test]
+    fn publickey_hash() {
+        (0..100).for_each(|i| {
+            let keypair = ::ethkey::Random{}.generate().unwrap();
+            let mut buf = Vec::new();
+            keypair.public().serialize(&mut Serializer::new(&mut buf)).unwrap();
+            writeln!(io::stdout(), "{}", buf.len()).unwrap();
+        })
+    }
+
+    #[test]
+    fn vec_hash() {
+        let mut buf = Vec::new();
+        let v: Vec<u8> = vec![];
+        v.serialize(&mut Serializer::new(&mut buf)).unwrap();
+        writeln!(io::stdout(), "{}", buf.len()).unwrap();
     }
 
     #[test]
