@@ -1,31 +1,36 @@
-pub mod storage;
 pub mod crypto;
+pub mod storage;
 #[macro_use]
 pub mod encoding;
 pub mod common;
 pub mod ethkey;
 pub mod mem;
 
-extern crate secp256k1;
 extern crate ethereum_types;
 extern crate keccak_hash;
+extern crate secp256k1;
 extern crate serde;
-#[macro_use]extern crate serde_derive;
-#[macro_use]extern crate serde_json;
-#[macro_use]extern crate failure;
-extern crate exonum_rocksdb as rocksdb;
-extern crate hex;
-extern crate sha3;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate serde_json;
+#[macro_use]
+extern crate failure;
 extern crate byteorder;
 extern crate chrono;
-extern crate uuid;
+extern crate exonum_rocksdb as rocksdb;
+extern crate hex;
 extern crate rmp;
 extern crate rmp_serde as rmps;
-#[macro_use]extern crate lazy_static;
-extern crate rand;
-extern crate tiny_keccak;
-extern crate rustc_hex;
+extern crate sha3;
+extern crate uuid;
+#[macro_use]
+extern crate lazy_static;
 extern crate parity_crypto;
+extern crate rand;
+extern crate rust_decimal;
+extern crate rustc_hex;
+extern crate tiny_keccak;
 
 #[cfg(test)]
 mod tests {

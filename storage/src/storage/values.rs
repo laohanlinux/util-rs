@@ -17,19 +17,19 @@
 use byteorder::{ByteOrder, LittleEndian};
 use chrono::prelude::*;
 use chrono::{DateTime, NaiveDateTime, Utc};
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
 use encoding;
-use rmps::{Serializer, Deserializer};
 use rmps::decode::Error;
+use rmps::{Deserializer, Serializer};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use std::mem;
 use std::borrow::Cow;
 use std::io::Cursor;
+use std::mem;
 
-use ethkey::{Public as PublicKey};
 use super::hash::UniqueHash;
-use crypto::{Hash, CryptoHash};
+use crypto::{CryptoHash, Hash};
+use ethkey::Public as PublicKey;
 
 /// A type that can be (de)serialized as a value in the blockchain storage.
 ///
@@ -104,7 +104,7 @@ macro_rules! implement_storagevalue_traits {
                 Deserialize::deserialize(&mut de).unwrap()
             }
         }
-    }
+    };
 }
 
 implement_storagevalue_traits! {bool}
@@ -139,7 +139,10 @@ impl StorageValue for () {
 impl StorageValue for Hash {
     fn into_bytes(self) -> Vec<u8> {
         let mut buf: Vec<u8> = Vec::new();
-        self.as_ref().to_vec().serialize(&mut Serializer::new(&mut buf)).unwrap();
+        self.as_ref()
+            .to_vec()
+            .serialize(&mut Serializer::new(&mut buf))
+            .unwrap();
         buf
     }
 
@@ -154,7 +157,10 @@ impl StorageValue for Hash {
 impl StorageValue for PublicKey {
     fn into_bytes(self) -> Vec<u8> {
         let mut buf: Vec<u8> = Vec::new();
-        self.0.as_ref().serialize(&mut Serializer::new(&mut buf)).unwrap();
+        self.0
+            .as_ref()
+            .serialize(&mut Serializer::new(&mut buf))
+            .unwrap();
         buf
     }
 
@@ -204,7 +210,6 @@ impl StorageValue for DateTime<Utc> {
         Deserialize::deserialize(&mut de).unwrap()
     }
 }
-
 
 //impl StorageValue for Duration {
 //    fn into_bytes(self) -> Vec<u8> {

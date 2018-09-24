@@ -1,10 +1,15 @@
-use hex;
-use rustc_hex::ToHex;
-use sha3::{Sha3_256, Digest};
-use ethereum_types::H256;
-use keccak_hash::keccak;
+use std::io::Cursor;
 
-pub fn to_hex<T: AsRef<[u8]>>(data: T) -> String{
+use ethereum_types::H256;
+use hex;
+use keccak_hash::keccak;
+use rmps::decode::Error;
+use rmps::{Deserializer, Serializer};
+use rustc_hex::ToHex;
+use serde::{Deserialize, Deserializer as stdDer, Serialize, Serializer as stdSer};
+use sha3::{Digest, Sha3_256};
+
+pub fn to_hex<T: AsRef<[u8]>>(data: T) -> String {
     hex::encode(data)
 }
 
@@ -20,6 +25,16 @@ pub fn to_sha3(data: &[u8]) -> Vec<u8> {
 
 pub fn to_keccak<T: AsRef<[u8]>>(data: T) -> H256 {
     keccak(data)
+}
+
+pub fn to_msgpack_vec<T: stdSer + Serialize>(obj: T, buf: &mut [u8]) {
+    obj.serialize(&mut Serializer::new(buf)).unwrap();
+}
+
+pub fn from_msgpack<T: 'static + stdSer + Deserialize<'static> + Serialize>(buf: &[u8]) -> T {
+    let cur = Cursor::new(buf);
+    let mut de = Deserializer::new(cur);
+    Deserialize::deserialize(&mut de).unwrap()
 }
 
 #[cfg(test)]

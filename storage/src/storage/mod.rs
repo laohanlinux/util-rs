@@ -2,8 +2,10 @@ pub mod db;
 pub mod error;
 pub mod hash;
 //pub mod rocksdb;
-pub mod values;
+pub mod base_index;
+pub mod indexes_metadata;
 pub mod keys;
+pub mod values;
 
 pub use self::error::Error;
 
