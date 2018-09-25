@@ -90,6 +90,7 @@ pub trait StorageValue: UniqueHash + Sized {
     fn from_bytes(value: Cow<[u8]>) -> Self;
 }
 
+#[macro_export]
 macro_rules! implement_storagevalue_traits {
     ($key: ident) => {
         impl StorageValue for $key {

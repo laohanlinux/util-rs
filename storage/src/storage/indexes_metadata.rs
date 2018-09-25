@@ -4,7 +4,8 @@ use serde_json::{self, Error as JsonError};
 use std::{borrow::Cow, error::Error, fmt};
 
 use super::db::{Fork, Snapshot};
-use super::values::StorageValue;
+use super::values::*;
+use encoding::*;
 use crypto::{self, CryptoHash, Hash};
 
 pub const INDEXES_METADATA_TABLE_NAME: &str = "__INDEXES_METADATA__";
@@ -12,14 +13,17 @@ pub const INDEXES_METADATA_TABLE_NAME: &str = "__INDEXES_METADATA__";
 // Storage metadata of a current Exonum version.
 // Value of this constant is to be changed manually
 // upon the introduction of breaking changes to the storage.
+const CORE_STORAGE_METADATA: StorageMetadata = StorageMetadata {version: 0};
 const CORE_STORAGE_METADATA_KEY: &str = "__STORAGE_METADATA__";
 
-encoding_struct! {
-    struct IndexMetadata {
-        index_type: IndexType,
-        is_family: bool,
-    }
+
+struct IndexMetadata {
+    index_type: IndexType,
+    is_family: bool,
 }
+
+implement_cryptohash_traits! {IndexMetadata}
+implement_storagevalue_traits! {IndexMetadata}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[repr(u8)]
@@ -55,11 +59,8 @@ impl From<u8> for IndexType {
     }
 }
 
-impl CryptoHash for IndexType {
-    fn hash(&self) -> Hash {
-        (*self as u8).hash()
-    }
-}
+
+implement_cryptohash_traits! {IndexType}
 
 impl StorageValue for IndexType {
     fn into_bytes(self) -> Vec<u8> {
