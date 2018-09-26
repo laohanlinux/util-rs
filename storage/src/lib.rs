@@ -1,10 +1,9 @@
-pub mod crypto;
-pub mod storage;
-#[macro_use]
-pub mod encoding;
 pub mod common;
+pub mod crypto;
+pub mod encoding;
 pub mod ethkey;
 pub mod mem;
+pub mod storage;
 
 extern crate ethereum_types;
 extern crate keccak_hash;

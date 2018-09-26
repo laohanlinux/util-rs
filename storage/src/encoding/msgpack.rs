@@ -1,9 +1,6 @@
-use sha3::{Digest, Sha3_256};
-use std::io::Cursor;
 use std::string::String;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
-use common;
 use crypto::*;
 use ethkey::Public as PublicKey;
 
@@ -14,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /////////////////////////////////////////////
+
 #[macro_export]
 macro_rules! implement_cryptohash_traits {
     ($key: ident) => {
@@ -68,8 +66,8 @@ impl CryptoHash for DateTime<Utc> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::io::{self, Write};
     use ethkey::Generator;
+    use std::io::{self, Write};
     #[test]
     fn u8_hsh() {
         let u_8: u8 = u8::from(100);
@@ -90,9 +88,12 @@ mod test {
     #[test]
     fn publickey_hash() {
         (0..100).for_each(|i| {
-            let keypair = ::ethkey::Random{}.generate().unwrap();
+            let keypair = ::ethkey::Random {}.generate().unwrap();
             let mut buf = Vec::new();
-            keypair.public().serialize(&mut Serializer::new(&mut buf)).unwrap();
+            keypair
+                .public()
+                .serialize(&mut Serializer::new(&mut buf))
+                .unwrap();
             writeln!(io::stdout(), "{}", buf.len()).unwrap();
         })
     }

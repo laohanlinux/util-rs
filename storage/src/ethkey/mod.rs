@@ -13,7 +13,7 @@ pub use self::random::Random;
 pub use self::signature::{sign, verify_public, verify_address, recover, Signature, SIGNATURE_SIZE};
 
 #[macro_use]
-use encoding::*;
+pub use encoding::msgpack::*;
 
 use secp256k1::Secp256k1;
 use ethereum_types::H256;

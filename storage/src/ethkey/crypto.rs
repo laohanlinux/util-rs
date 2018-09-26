@@ -44,7 +44,8 @@ pub mod sign {
 mod test {
     use super::*;
     use ::crypto::{CryptoHash, Hash, hash};
-    use ::encoding;
+    #[macro_use]
+    use encoding::msgpack::*;
     use ethereum_types::H256;
     use ethkey::{Public, Address, KeyPair};
     use ethkey::Generator;
