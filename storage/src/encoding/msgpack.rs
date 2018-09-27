@@ -1,8 +1,10 @@
+use std::io::Cursor;
 use std::string::String;
 use std::time::Duration;
 
 use crypto::*;
 use ethkey::Public as PublicKey;
+use sha3::{Digest, Sha3_256};
 
 use chrono::prelude::*;
 use rmps::decode::Error;
@@ -11,7 +13,6 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /////////////////////////////////////////////
-
 #[macro_export]
 macro_rules! implement_cryptohash_traits {
     ($key: ident) => {

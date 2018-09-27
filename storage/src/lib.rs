@@ -1,8 +1,10 @@
 pub mod common;
 pub mod crypto;
+#[macro_use]
 pub mod encoding;
 pub mod ethkey;
 pub mod mem;
+#[macro_use]
 pub mod storage;
 
 extern crate ethereum_types;
