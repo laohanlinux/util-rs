@@ -20,7 +20,7 @@ pub const INDEXES_METADATA_TABLE_NAME: &str = "__INDEXES_METADATA__";
 // Storage metadata of a current Exonum version.
 // Value of this constant is to be changed manually
 // upon the introduction of breaking changes to the storage.
-// const CORE_STORAGE_METADATA: StorageMetadata = StorageMetadata { version: 0 };
+ const CORE_STORAGE_METADATA: StorageMetadata = StorageMetadata { version: 0 };
 const CORE_STORAGE_METADATA_KEY: &str = "__STORAGE_METADATA__";
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -127,6 +127,63 @@ pub fn assert_index_type(name: &str, index_type: IndexType, is_family: bool, vie
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) struct StorageMetadata {
     version: u32,
+}
+
+impl StorageMetadata {
+    pub fn current() -> Self {CORE_STORAGE_METADATA}
+
+    pub fn try_serialize(&self) -> Result<Vec<u8>, JsonError> {serde_json::to_vec(&self)}
+
+    pub fn try_deserialize(serialized: &[u8]) -> Result<Self, JsonError> { serde_json::from_slice(serialized) }
+
+    pub fn write_current(view: &mut Fork) {
+        let mut metadata = BaseIndex::indexes_metadata(view);
+        metadata.put(&CORE_STORAGE_METADATA_KEY.to_owned(), Self::current());
+    }
+
+    pub fn read<T: AsRef<dyn Snapshot>>(view: T) -> Result<Self, super::Error> {
+        let metadata = BaseIndex::indexes_metadata(view);
+        match metadata.get::<_, Self>(CORE_STORAGE_METADATA_KEY) {
+            Some(ref ver) if *ver == CORE_STORAGE_METADATA => Ok(ver.clone()),
+            Some(ref ver) => Err(super::Error::new(format!(
+                "Unsupported storage version: [{}]. Current storage version: [{}].",
+                ver,
+                StorageMetadata::current(),
+            ))),
+            None => Err(super::Error::new(format!(
+                "Storage version is not specified. Current storage version: [{}].",
+                StorageMetadata::current()
+            ))),
+        }
+    }
+}
+
+implement_cryptohash_traits! {StorageMetadata}
+
+impl StorageValue for StorageMetadata {
+    fn into_bytes(self) -> Vec<u8> {
+        self.try_serialize().unwrap()
+    }
+
+    fn from_bytes(v: ::std::borrow::Cow<[u8]>) -> Self {
+        StorageMetadata::try_deserialize(v.as_ref()).unwrap()
+    }
+}
+
+impl fmt::Display for StorageMetadata {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.version)
+    }
+}
+
+pub fn set_index_type(name: &str, index_type: IndexType, is_family: bool, view: &mut Fork) {
+    if name == INDEXES_METADATA_TABLE_NAME || name == CORE_STORAGE_METADATA_KEY {
+        panic!("Attempt to access an internal storage infrastructure");
+    }
+    let mut metadata = BaseIndex::indexes_metadata(view);
+    if metadata.get::<_, IndexMetadata>(name).is_none() {
+        metadata.put(&name.to_owned(), IndexMetadata::new(index_type, is_family));
+    }
 }
 
 //impl StorageMetadata {

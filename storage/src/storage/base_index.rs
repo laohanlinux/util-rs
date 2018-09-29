@@ -99,6 +99,44 @@ where
     }
 }
 
+impl <'a> BaseIndex<&'a mut Fork> {
+    fn set_index_type(&mut self) {
+       if !self.is_mutable {
+
+       }
+    }
+}
+
+impl<'a, K, V> Iterator for BaseIndexIter<'a, K, V>
+    where
+        K: StorageKey,
+        V: StorageValue,
+{
+    type Item = (K::Owned, V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.ended {
+            return None;
+        }
+        if let Some((k, v)) = self.base_iter.next() {
+            if k.starts_with(&self.index_id) {
+                return Some((
+                    K::read(&k[self.base_prefix_len..]),
+                    V::from_bytes(Cow::Borrowed(v)),
+                ));
+            }
+        }
+        self.ended = true;
+        None
+    }
+}
+
+impl<'a, K, V> ::std::fmt::Debug for BaseIndexIter<'a, K, V> {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        writeln!(f, "BaseIndexIter(..)")
+    }
+}
+
 /// A function that validators and index name. Allowable characters in name:  ASCII characters,
 /// digists and underscores.
 fn is_valid_name<S: AsRef<str>>(name: S) -> bool {
