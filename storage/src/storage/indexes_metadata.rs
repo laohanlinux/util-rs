@@ -186,37 +186,3 @@ pub fn set_index_type(name: &str, index_type: IndexType, is_family: bool, view: 
     }
 }
 
-//impl StorageMetadata {
-//    pub fn current() -> Self {
-//        CORE_STORAGE_METADATA
-//    }
-//
-//    pub fn try_serialize(&self) -> Result<Vec<u8>, JsonError> {
-//        serde_json::to_vec(&self)
-//    }
-//
-//    pub fn try_deserialize(serialized: &[u8]) -> Result<Self, JsonError> {
-//        serde_json::from_slice(serialized)
-//    }
-//
-//    pub fn write_current(view: &mut Fork) {
-//        let mut metadata = BaseIndex::indexes_metadata(view);
-//        metadata.put(&CORE_STORAGE_METADATA_KEY.to_owned(), Self::current());
-//    }
-//
-//    pub fn read<T: AsRef<dyn Snapshot>>(view: T) -> Result<Self, super::Error> {
-//        let metadata = BaseIndex::indexes_metadata(view);
-//        match metadata.get::<_, Self>(CORE_STORAGE_METADATA_KEY) {
-//            Some(ref ver) if *ver == CORE_STORAGE_METADATA => Ok(ver.clone()),
-//            Some(ref ver) => Err(super::Error::new(format!(
-//                "Unsupported storage version: [{}]. Current storage version: [{}].",
-//                ver,
-//                StorageMetadata::current(),
-//            ))),
-//            None => Err(super::Error::new(format!(
-//                "Storage version is not specified. Current storage version: [{}].",
-//                StorageMetadata::current()
-//            ))),
-//        }
-//    }
-//}
