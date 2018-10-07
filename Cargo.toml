@@ -1,33 +1,4 @@
-[package]
-name = "util_rs"
-version = "0.1.0"
-authors = ["Rg <daimaldd@gmail.com>"]
-
 [workspace]
-
 members = [
-    "./",
-    "kvstore",
     "storage"
 ]
-
-[dependencies]
-runtime-fmt = "*"
-byteorder = "1.1.0"
-chrono = { version = "0.4.0", features = ["serde"] }
-uuid = { version = "0.6.0", features = ["serde"] }
-serde = "1.0.10"
-serde_derive = "1.0.10"
-serde_json = "1.0.2"
-hex = "0.3.0"
-bit-vec = "0.4.4"
-term = "0.5.1"
-colored = "1.5.2"
-log = "0.4.1"
-env_logger = "0.5.3"
-failure = "0.1.1"
-toml = "0.4.2"
-atty = "0.2.2"
-os_info = "0.7.0"
-#blockchain = "*"
-#kvstore = "*"
