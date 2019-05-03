@@ -1,5 +1,5 @@
 [package]
-name = "fs"
+name = "ext-fs"
 version = "0.1.0"
 authors = ["Rg <daimaldd@gmail.com>"]
 edition = "2018"
