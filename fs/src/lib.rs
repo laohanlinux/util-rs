@@ -20,6 +20,13 @@ pub fn read_to_end<P: AsRef<Path>>(path: P) -> Vec<u8> {
     }).unwrap()
 }
 
+pub fn create_write_all<P: AsRef<Path>>(path: P, mut buf: &[u8]) {
+    stdfs::File::create(path).map(|mut fp| {
+        fp.write_all(&mut buf).unwrap();
+        fp.flush().unwrap();
+    }).unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
